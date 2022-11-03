@@ -1,0 +1,10 @@
+---
+title: "plan_tesis"
+author: "Claudio Sebastián Castillo"
+date: "Noviembre 2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
