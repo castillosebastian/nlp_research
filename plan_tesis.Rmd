@@ -1,10 +1,15 @@
 ---
-title: "plan_tesis"
+title: "Plan de Tesis 'Nombres en la sentencia: una perspectiva de máquinas'"
 author: "Claudio Sebastián Castillo"
-date: "Noviembre 2022"
+date: "2022-11-03"
 output: pdf_document
+bibliography: nlp_ner.bib  
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+En este documento presentamos nuestro Plan de Tesis para la Maestría en Minería de Datos de la UTN -Regional Paraná- en el marco del área de Procesamiento del Lenguaje Natural (NLP por sus siglas en ingles), en el tópico vinculado a reconocimiento de entidades nombradas (NER). En este campo, de recientes y profundas trasnformaciones, vamos a aplicar las metodologías basadas en *modelos del lenguaje* del tipo *Transformer*[@vaswani2017] al dominio legal. El objetivo del trabajo es extraer información a los textos jurídicos que hoy permanece inexplorada con el fin de facilitar su tratamiento y reutilización.
+
+\pagebreak
