@@ -10,6 +10,38 @@ bibliography: nlp_ner.bib
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-En este documento presentamos nuestro Plan de Tesis para la Maestría en Minería de Datos de la UTN -Regional Paraná- en el marco del área de Procesamiento del Lenguaje Natural (NLP por sus siglas en ingles), en el tópico vinculado a reconocimiento de entidades nombradas (NER). En este campo, de recientes y profundas transformaciones, vamos a aplicar las metodologías basadas en *modelos de lenguaje* del tipo *Transformer*[@vaswani2017] al dominio legal. El objetivo del trabajo es extraer información a los textos jurídicos que hoy permanece inexplorada con el fin de facilitar su tratamiento y reutilización.
+# Resumen
+
+En este documento presentamos nuestro Plan de Tesis para la Maestría en Minería de Datos de la UTN -Regional Paraná- en el marco del área de Procesamiento del Lenguaje Natural (NLP por sus siglas en ingles), en el tópico vinculado a reconocimiento de entidades nombradas (NER). En este campo, de recientes y profundas transformaciones, vamos a aplicar las metodologías basadas en *modelos de lenguaje* del tipo *Transformer*[@vaswani2017] al dominio legal. El objetivo del trabajo es extraer información que hoy permanece inexplorada de los textos jurídicos con el fin de facilitar su tratamiento y reutilización.
+
+# Introducción
+
+El Poder Judicial tiene la función constitucional de brindar justicia y al hacerlo velar por el Estado de Derecho y la resolución pacífica de conflictos. Esa tarea fundamental para la vida en sociedad tiene como producto central a la *sentencia judicial*, documento en el que un juez reconstruye una situación problemática y fija la solución jurídica que le corresponde. Tan importante es este documento que tiene la fuerza de una ley particular para las personas involucradas en el conflicto y el poder de un mensaje acerca de lo justo que alcanza a todo la sociedad. Por eso Rosatti, juez de la Corte Suprema de Justicia de la Nación, dice que *"las sentencias deben ser profundas y claras"* porque *"todos deben saber qué está prohibido, de ahí la importancia del lenguaje "*. [@rosatti2022]
+
+# Objetivo
+
+# Factibilidad y relevancia
+
+## Estado del arte
+
+## Desafíos
+
+# Metodología
+
+## Área de Estudio
+
+## Obtención y preparación de datos
+
+## Procesamiento de datos
+
+## Entrenamiento de modelos
+
+## Evaluación
+
+# Software
+
+El trabajo se desarrollará utilizando el lenguaje de programación Python 3 y frameworks o librerías asociadas. .... Para el entrenamiento y evaluación de los modelos de NLP propuestos se utilizarán las plataformas Google Colab y Kaggle las cuales brindan acceso gratuito a GPU's de alto rendimiento.
+
+# Cronograma
 
 \pagebreak
