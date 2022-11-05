@@ -12,28 +12,29 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Resumen
 
-En este documento presentamos nuestro Plan de Tesis para la Maestría en Minería de Datos de la UTN -Regional Paraná- en el marco del área de Procesamiento del Lenguaje Natural (NLP por sus siglas en ingles), en el tópico vinculado a reconocimiento de entidades nombradas (NER). El objetivo del trabajo es extraer información que hoy permanece inexplorada en los textos judiciales con el fin de facilitar su tratamiento y reutilización. Para ello vamos a aplicar metodologías basadas en *modelos de lenguaje* del tipo *Transformer*[@vaswani2017], explorando distintas configuraciones para determinar los mejores resultados.
+En este documento presentamos nuestro Plan de Tesis para la Maestría en Minería de Datos de la UTN -Regional Paraná- en el marco del área de Procesamiento del Lenguaje Natural (NLP por sus siglas en ingles), en el tópico vinculado a reconocimiento de entidades nombradas (NER). El objetivo del trabajo es extraer información que hoy permanece inexplorada en los textos judiciales con el fin de facilitar su tratamiento y reutilización. Para ello vamos a explorar y aplicar metodologías basadas en *modelos de lenguaje* (e.g. *Transformer*[@vaswani2017]) que ofrezcan los mejores resultados con la menor intervención humana posible en tareas de anotación o etiquetado.
 
 # Introducción
 
 El Poder Judicial tiene la función constitucional de brindar justicia y al hacerlo velar por el Estado de Derecho y la resolución pacífica de conflictos. Esa tarea fundamental para la vida en comunidad tiene como producto central a la *sentencia judicial*, documento donde un juez reconstruye una situación problemática y fija la solución jurídica que corresponde. Tan importante es este documento que tiene la fuerza de una ley particular para las personas involucradas en el conflicto y el poder de un mensaje acerca de "lo justo" para toda la sociedad. Por eso Rosatti, juez de la Corte Suprema de Justicia de la Nación, dice que *"las sentencias deben ser profundas y claras"* porque *"todos deben saber qué está prohibido, de ahí la importancia del lenguaje"*. [@rosatti2022]
 
-Pero dicha importancia contrasta con la escacez de desarrollos teórico-metodológicos orientados a la explotación de las *sentencias judiciales* como fuentes de conocimiento. Entre los factores que han ralentizado la aparición de estas tecnologías se pueden mencionar: los distintos grados de avance en las experiencias de digitalización de procesos internos al Poder Judicial,
+En efecto, la *sentencia judicial* es un documento público que concentra todos los datos relevantes de una *proceso judicial*, desde referencias a las partes, lugares y fechas de una causa, hasta complejas descripciones de hechos y derechos. Estos elementos se articulan mediante un discurso eminentemente técnico, que procede -a priori- a partir de una argumentación racional de la forma premisas-conclusión. Tales atributos tornan a las *sentencias judiciales* objetos de un valor epistemológico significativo, y a su agregación en bases de datos en potenciales *reservorios* de conocimiento.
+
+Desafortunadamente esa importancia contrasta con la escasez de desarrollos orientados a la explotación de documentos legales -particularmente sentencias- a partir de sus atributos lingüísticos. En efecto, @samy2021 menciona entre los *retos* que enfrentan este tipo de proyecto a: *1) El número limitado de recursos y herramientas de PLN adaptados al dominio en general;* y *2) La predominancia del inglés, ya que la mayoría de los recursos y las herramientas disponibles se desarrollan para el tratamiento de textos en inglés.* Esto ha determinado, según dice, *una adopción ralentizada de las tecnologías inteligentes en el sector legal y administrativo en comparación con otros sectores como el sector biomédico o financiero.* Por su parte @cardellino_low-cost_2017 refuerza esta enumeración destacando que *existen muy pocos corpus legales anotados con anotaciones para entidades* [lo que ] *constituye una importante barrera para la Extracción de Información del texto legal @cardellino_low-cost_2017.*
+
+En línea con esta carencia de recursos han surgido diversos proyectos en el ámbito del habla hispana para cubrir esta necesidad. Entre ellos se destacan el proyecto Mirel (<https://www.mirelproject.eu/>) y el Plan de Impulso a las Tecnologías del Lenguaje del Gobierno de España [@gobiernoespaña]. Ambos sientan precedentes insoslayables para avanzar en materia de NLP, pero no generan recursos particulares de libre acceso para el problema que estamos proponiendo.
 
 ! Extraer de: @samy2021 pto.2
 
 Todo ello sin mencionar las exigentes condiciones legales y reglamentarias que regulan la disposición y tratamiento de bases de datos judiciales, entre la que están: Protección de datos personales, datos sensibles, .....
 
-En este sentido @samy2021 menciona entre los *retos* para el avance
-1) El número limitado de recursos y herramientas de PLN adaptados al dominio en general; 2) La predominancia del inglés, ya que la mayoría de los recursos y las herramientas disponibles se desarrollan para el tratamiento de textos en inglés; 3) Una adopción ralentizada de las tecnologías inteligentes en el sector legal y administrativo en comparación con otros sectores como el sector biomédico o financiero.
-
-En muchos aspectos las bases de datos judiciales permaneces como reservorios inexplorados
-
-[104]. Esto es particularmente evidente en Argentina pero podría extenderse a otros países de habla hispana, que en los últimos años han comenzado a revertir esta dificultad a partir de diversas iniciativas ( . Plan de Impulso a las Tecnologías del Lenguaje [@gobiernoespaña]
-
 # Objetivo
 
+We address the following research questions: 1. Which state of the art approaches are in use for NER? Which approaches have been developed for NER in legal documents? Do these approaches correspond to the state of the art? 2. Which NE categories are typical for legal documents? Which classes are to be identified and classified? Which legal documents can be used for a dataset? 3. What performance do current models have? How are different categories recognized? Which categories are recognized better than others?
+
 # Factibilidad y relevancia
+
+Research on NER has a history of more than 20 years and produced approaches based on linear statistical models, e.g., Maximum Entropy Models [1,10], Hidden Markov Models [27], among others. Nowadays, the state of the art results are produced by methods such as CRFs [2,4,16,17]andBiLSTMs[9,20,22,26]. For English news documents, the best models have a performance of approx. 90 F1 [9, 20, 22, 26, 29, 38], while the best models for German are not quite as good with approx. 80 F1 [2, 4, 16, 22]. Based on their very good performance on news documents, we examine the use of CRFs and BiLSTMs in legal documents.
 
 En cuanto a las metodologías y técnicas, los métodos empleados para abordar la tarea de NERC han ido desarrollando desde modelos basados en reglas con patrones de expresiones regulares, listas o gazetteers hacia modelos de aprendizaje automático supervisado y semisupervisado como Hidden Markov Models (HMM), Support Vector Machine (SVM) y Conditional Random Field (CRF) siendo este último de los más eficientes en NERC (Roy, 2021). En los últimos años, el uso de las redes neuronales con el aprendizaje profundo y la integración de modelos del lenguaje con los WordEmbeddings ha supuesto un cambio en el paradigma del PLN en general y en las tareas específicas como NERC (Roy, 2021). @samy2021
 
@@ -41,13 +42,21 @@ El papel de NERC es imprescindible en el desarrollo de sistemas legales intelige
 
 Este interés se fundamenta en el gran potencial de las técnicas de PLN y su capacidad de ofrecer soluciones inteligentes que beneficien a usuarios claves del sector como los abogados, los jueces, los juristas, los documentalistas jurídicos, además del sector de la administración pública que, aunque no trate textos estrictamente jurídicos, sí maneja textos administrativos con un alto contenido legal como es el caso de la contratación pública o los convenios. Por tanto, los avances en el procesamiento de textos legales constituyen un gran potencial para agilizar procesos internos de la administración pública, simplificar los procedimientos y mejorar el acceso de la ciudadanía a la información legal y administrativa. Para impulsar la apertura de @samy2021.
 
+The goal is to make knowledge workers, who process and make use of these documents, more efficient and more effective in their day to day work, this also includes the analysis of domain-specific NEs, see [5,31] for related approaches in the area of content curation technologies. @leitner_fine-grained_2019
+
 ## Estado del arte
+
+@leitner_fine-grained_2019[274]
 
 ## Desafíos
 
 [texto DavidPerezFernandez]
 
 No obstante, los trabajos en esta área se enfrentan con retos como: 1) El número limitado de recursos y herramientas de PLN adaptados al dominio en general; 2) La predominancia del inglés, ya que la mayoría de los recursos y las herramientas disponibles se desarrollan para el tratamiento de textos en inglés; 3) Una adopción ralentizada de las tecnologías inteligentes en el sector legal y administrativo en comparación con otros sectores como el sector biomédico o financiero. Estos retos han influido en que la consolidación de la tarea NERC en el dominio legal ha tardado unos años en comparación con otros dominios. De ahí, el presente estudio pretende afrontar la tarea en los textos legales españoles teniendo como objetivo principal el reconocimiento y la clasificación de cinco tipos básicos de entidades nombradas en textos legislativos españoles.
+
+Legal language is unique and differs greatly from newspaper language. This also relates to the use of person, location and organization NEs in legal text, which are relatively rare. It does contain such specific entities as designations of legal norms and references to other legal documents (laws, ordinances, regulations, decisions, etc.) that play an essential role. @leitner_fine-grained_2019
+
+Despite the development of NER for other languages and domains, the legal domain has not been exhaustively addressed yet. This research also had to face the following two challenges. (1) There is no uniform typology of semantic concepts related to NEs in documents from the legal domain; correspondingly, uniform annotation guidelines for NEs in the legal domain do not exist either. (2) There are no freely available datasets consisting of documents from the legal domain, in which NEs have been annotated. Thus, the research goal is to examine NER with a specific focus on German legal documents. This includes the elaboration of the corresponding concepts, the construction of a dataset, developing, evaluating and comparing state of the art models for NER. @leitner_fine-grained_2019
 
 # Metodología
 
@@ -66,6 +75,14 @@ El reconocimiento de entidades nombradas (NER por sus siglas en ingles), tambien
 ## Obtención y preparación de datos
 
 ## Procesamiento de datos
+
+To adapt categories for the legal domain, the set of NE classes was redefined in the approaches described above. Thus, Dozier et al. [13] focused on legal NEs (e.g., judge, lawyer, court ). Cardellino et al. [8] extended NEs on NERC level to document, abstraction,andact. It is unclear what belongs to these classes and how they were separated from each other. Glaser et al. [18] added reference [23]. However, this was understood as a reference to legal norms, so that further references (to decisions, regulations, legal literature, etc.) were not covered. @leitner_fine-grained_2019
+
+3.1 Semantic Categories Legal documents differ from texts in other domains, and from each other in terms of text-internal, and text-external criteria [7,12,15,21], which has a huge impact on linguistic and thematic design, citation, structure, etc. This also applies to NEs used in legal documents. In law texts and administrative regulations, the occurrence of typical NEs such as person, location and organization is very low. Court decisions, on the other hand, include these NEs, and references to national or supranational laws, other decisions, and regulations. Two requirements for a typology of legal NEs emerge from these peculiarities. First, the categories used must reflect those entities that are typical for decisions. Second, a typology must concern the entities whose differentiation in decisions is highly relevant. @leitner_fine-grained_2019[275]
+
+Taxonomía de las categorías: 19! ver @leitner_fine-grained_2019
+
+Ojo con la anonimización de sentencias debido a protección de datos personals.
 
 ## Entrenamiento de modelos
 
