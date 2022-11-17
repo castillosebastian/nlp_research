@@ -26,28 +26,19 @@ knitr::opts_chunk$set(fig.align = "center", fig.height = 8, fig.width = 10)
 
 El *deep learning* es un área sumamente bella del *machine learning* y no estoy pensando en sus resultados sino en la riqueza de sus arquitecturas y la sutileza de sus composiciones algorítmicas. Una forma de apreciar esa belleza en mi caso ha pasado por comprender estos complejos mecanismos a partir de sus elementos simples. Intentar mirar con auténtica curiosidad y ánimo de juego, cómo funcionan las *redes neuronales*.   
 
-Por eso en este documento construiremos nuestra propia red neuronal desde cero.Esta red será básica (una sola capa oculta y realizará una clasificación binaria) pero contendrá todos los elementos que hacen funcionar esta unidades de aprendizaje y todas las arquitecturas basadas en ellas.    
+Por eso, en este documento repasaremos el fabuloso experimento de Akshaj Verma [2020](https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/), recreando una red neuronal. Akshaj construye una red utilizando R que sirve para realizar una clasificación binaria. Aún en su simpleza esta red contiene todos los elementos que hacen funcionar a estas unidades de aprendizaje y todas las arquitecturas basadas en ellas.    
 
-En este primer documento armaremos nuestra red parte por parte, comenzando con las funciones que sirven para inicializar los parámetros de la red, algo así como el estado 0 de aprendizaje (una *tabula rasa*) y luego las funciones de propagación hacia adelante. En el segundo documento implementaremos la retropropagación escribiendo funciones para calcular gradientes y actualizar los pesos. Finalmente, haremos predicciones sobre los datos de prueba y veremos qué tan preciso es nuestro modelo usando métricas como Exactitud, Recuperación, Precisión y puntaje F1. Compararemos nuestra red neuronal con un modelo de regresión logística. 
+Siguiendo ese experiemento, en este proyecto armaremos nuestra red parte por parte, comenzando con las funciones que sirven para inicializar los parámetros de la red, algo así como el estado 0 de aprendizaje (una *tabula rasa*) y luego las funciones de propagación hacia adelante y hacia atrás tal cual fueron cradas por Akshaj. Luego rearmaremos la función para calcular el gradientes y actualizar los pesos. Finalmente, haremos predicciones sobre los datos de test y veremos qué tan preciso es nuestro modelo comparándolo con un modelo de regresión logística. 
 
-Al final de esta serie esperamos haber recorrido los distintos elementos de este maravilloso artefacto que son las *redes neuronales* como así también ganar una intuición más profunda de lo que implican las grandes arquitecturas que hoy pueblan el campo de la *Inteligencia Artificial*. 
+Al final de este experiemnto esperamos haber recorrido los distintos elementos de este maravilloso artefacto que son las *redes neuronales* como así también ganar una intuición más profunda de lo que implican las grandes arquitecturas que hoy pueblan el campo de la *Inteligencia Artificial*. 
 
-Finalmente este documento fue elaborado a partir de la publicación del 2020-07-20 de Akshaj Verma (India) a quién deben darse los créditos por el maravilloso experimento de aprendizaje. Ver publicación [aquí](https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/).   
-
-## Preparamos ambiente y algunas librerías
+# Preparamos datos, ambiente y algunas librerías
 
 ```{r}
 set.seed(777)
 library(dplyr)
 library(ggplot2)
 ```
-
-
-## Estructura de una red neuronal
-
-Describiremos una red neuronal simple de 3 capas (*layers*)  con una sola capa oculta. La primera capa recibe los datos o imputs, la tercera capa genera los outputs o salidas, la sagunda capa es la capa oculta.  La capa de entrada tendrá dos neuronas (para recibir cada una un atributo o columna del dataset), la capa oculta cuatro neuronas y la de salida una neurona (porque estamos haciendo una clasifición binaria 0 o 1). Nuestra salida en realidad será una probabilidad por lo que debermos fijar el umbral o punto de corte para decidir respecto de la clase según un valor de probabilidad. Por ejemplo, este umbral puede ser < 0,5 = 1.    
-
-Hay que tener en cuenta que esta estructura es una simplificación. Las redes neuronales pueden tener multiples capas con miles de neuronas (o unidades de procesamiento).   
 
 ## Creamos dataset para el experimento
 
@@ -88,8 +79,7 @@ ggplot(df, aes(x = X1, y = X2, color = factor(Y))) +
 df <- df[sample(nrow(df)), ]
 ```
 
-
-## Separacion dataset para entrenamiento
+## Separacion dataset Train-Test
 
 ```{r}
 train_test_split_index <- 0.8 * nrow(df)
@@ -101,7 +91,7 @@ train %>% head() %>%
 
 ## Preprocesamiento
 
-Las redes neuronales funcionan mejor cuando los valores de entrada están estandarizados. Entonces, escalaremos todos los valores para que tengan su media = 0 y su desviación estándar = 1. La estandarización de los valores de entrada acelera el entrenamiento y garantiza una convergencia más rápida.
+Las redes neuronales funcionan mejor cuando los valores de entrada están estandarizados. Entonces, escalaremos todos los valores para que tengan su media = 0 y su desviación estándar = 1. La estandarización de los valores de entrada acelera el entrenamiento.     
 
 ```{r}
 X_train <- scale(train[, c(1:2)])
@@ -115,7 +105,7 @@ y_test <- test$Y
 dim(y_test) <- c(length(y_test), 1)
 ```
 
-Las redes neuronales emplean cálculo matricial para las transformaciones matemáticas que aplican a los datos en orden a lograr una representación permita resolver la tarea para la cual están siendo entrenadas. Estas trasnformaciones van generando la información que necesita la red (y que captura a partir de los pesos de sus capas *weights*) para poder relacionar ciertos datos de entrada con la clase que le corresponde-
+## Convertimos dataframes en matrices
 
 ```{r}
 X_train <- as.matrix(X_train, byrow=TRUE)
@@ -132,20 +122,32 @@ X_train %>% head() %>%
   gridExtra::grid.table()
 ```
 
-# Construendo la Red Neuronal
 
-Como dijimos antes ahora construiremos nuestra red. Procederemos mediante los siguientes pasos:  
+# Armamos nuestra red neuronal
 
-- Inicializamos los parámetros del modelo a partir de una distribución aleatoria uniforme,      
-- En sucesivas iteraciones:     
-  - Implementar la propagación hacia adelante.  
-  - Calcular pérdida.    
-  - Implemente la propagación hacia atrás para obtener los gradientes.
-  - Actualizar parámetros.
+La pieza central de una red está dada por sus capas o *layers*, que pueden ser vistas como *módulos de procesamiento* de los datos. Es decir, los datos encuentran en cada *layer* a una estructura compuesta por ciertas operaciones matriciales y cierta información para realizar esas operaciones. Información que se denomina *weights* o *parámetros de la red*.    
+
+En nuestro caso, describiremos una red neuronal simple de 3 capas con una sola capa oculta. La primera capa está dada por los datos de entrenamiento (atributos o variables), la tercera capa genera los outputs o salidas para nuestra clasificación, la segunda capa es la capa oculta. La capa de entrada tendrá dos neuronas (una por cada atributo o columna del dataset), la capa oculta cuatro neuronas (que puede entenderse como un indicador de la complejidad que tiene la red y las transformaciones que realizará en los datos) y la de salida una sola neurona (porque estamos haciendo una clasificación binaria 0 o 1 para lo cual una simple transformación tipo sigmoide es suficiente). 
+
+Nuestra salida en realidad será una probabilidad por lo que deberemos fijar el umbral o punto de corte para decidir respecto de la clase, por ejemplo, umbral: < 0,5 = 1.     
+
+Hay que tener en cuenta que esta estructura es una simplificación. Las redes neuronales pueden tener múltiples capas con miles de neuronas (o unidades de procesamiento).    
+
+Las redes neuronales emplean cálculo matricial (más específicamente operaciones sobre tensores) para las transformaciones matemáticas que aplican a los datos. De hecho los datos no son otra cosa que tensores de números (arreglos de N dimensiones) que codifican la información disponible. Las operaciones son formas de manipular/transformar los datos de entrada con el fin de lograr representaciones útiles para la tarea objetivo. Estas transformaciones van generando la información que necesita la red (y que captura en sus parámetros -más de esto en un rato-) para poder relacionar ciertos datos de entrada con la clase que le corresponde.    
+
+Entrenar una red neuronal generalmente supone los siguientes pasos: 
+
+- inicializar los parámetros del modelo a partir de una distribución aleatoria uniforme, y       
+- iterar cumpliendo con:     
+  - implementar propagación hacia adelante,      
+  - calcular pérdida, y       
+  - implemente propagación hacia atrás para ajustar parámetros. 
+  
+Por eso a continuación veremos las funciones que nos permitirán cumplir con ese propósito.      
   
 ## Tamaño de las capas neuronales de la red
 
-Una red neuronal aprende a través del proceso de entrenamiento y ese aprendizaje queda *almacenado* en sus parámetros o *weights* que están en sus capas. Dichos parámetros en la primeras operaciones de entrenamiento adquieren valores aleatorios, por eso los primeros resultados de las predicciones son *malos* resultados, completamente aleatorios también. Sin embargo a medida que se generan nuevas iteraciones dichos parametros se van ajustando para minimizar el error de predicción como ya veremos. Es importante resaltar que dichos parámetros son matrices de valores que forman parte de la capa de la red y que permiten efectuar las operaciones matriciales que transforman entradas en salidas. Dichas matrices tienen una dimensión que depende del número de neuronas en cada capa de la red. Por esa razón crearemos una función para extraer esta información para armar nuestra red.
+Una red neuronal aprende a través del proceso de entrenamiento y ese aprendizaje queda *almacenado* en sus parámetros o *weights* que están en sus capas. Dichos parámetros adquieren inicialmente valores aleatorios (por eso los primeros resultados de las predicciones no suponen aprendizaje alguno), pero a medida que se generan nuevas iteraciones dichos parámetros se van ajustando para minimizar el error de predicción como ya veremos. Es importante resaltar que dichos parámetros son matrices de valores que forman parte de la capa de la red y que permiten efectuar las operaciones matriciales que transforman entradas en salidas. Dichas matrices tienen una dimensión que depende del número de neuronas en cada capa de la red.Veamos la función que extrae esta información.  
 
 ```{r}
 getLayerSize <- function(X, y, hidden_neurons, train=TRUE) {
@@ -166,12 +168,9 @@ layer_size <- getLayerSize(X_train, y_train, hidden_neurons = 4)
 layer_size
 ```
 
-  
-## Inicialización aleatória de los parámetros de la red
+## Inicialización aleatoria de los parámetros de la red
 
-Antes de comenzar a entrenar nuestros parámetros, debemos inicializarlos para lo cual emplearemos una distribución uniforme aleatoria.   
-
-La función `initializeParameters()` toma como argumento una matriz de entrada y una lista que contiene los tamaños de las capas, es decir, el número de neuronas. La función devuelve los parámetros entrenables W1, b1, W2, b2.
+Antes de comenzar a entrenar nuestros parámetros, debemos inicializarlos para lo cual emplearemos una distribución uniforme aleatoria.  La función `initializeParameters()` toma como argumento una matriz de entrada y una lista que contiene los tamaños de las capas, es decir, el número de neuronas. La función devuelve los parámetros entrenables W1, b1, W2, b2.    
 
 Nuestra red neuronal tiene 3 capas, lo que nos da 2 conjuntos de parámetros o 4 matrices. El primer conjunto es W1 y b1. El segundo conjunto es W2 y b2. Los tamaños de estas matrices de pesos son:  
 
@@ -203,9 +202,7 @@ initializeParameters <- function(X, list_layer_size){
 }
 ```
 
-
 Para nuestra red, el tamaño de nuestras matrices tiene los siguientes valores:   
-
 
 ```{r}
 init_params <- initializeParameters(X_train, layer_size)
@@ -217,8 +214,17 @@ init_params$W1 %>%
   gridExtra::grid.table()
 ```
 
-## Definimos la función sigmoidea
+# Fowardpropagation
 
+Esta etapa del entrenamiento supone transformar los de datos disponibles mediante operaciones entre tensores (los datos de entrada se exponen a las distintas capaz en secuencia), exponiendo los datos a las configuraciones que tiene nuestra red (los *weights* y *bias*).     
+
+Nótese que esta operación es una forma de transformar los datos de entrada con el fin de que los datos resultantes adquieran valores distintos y así conformar una representación útil para la tarea de clasificación que se está realizando. Esta transformación, basada en operaciones elementales de multiplicación y suma de tensores, convierte la información codificada en los atributos de entrada en nuevos atributos y al hacerlo van reteniendo en los *weights* los valores que los generaron. Esta información, almacenada bajo la forma de una matriz de valores, es la *memoria de la neurona*, constituida por una matriz de valores que se van ajustando con las iteracciones de entrenamiento (*epoch*). Así, cada predicción tiene lugar en una cadena de sucesivas predicciones cuyo error (discrepancia verdad-predicción) se busca minimizar.    
+
+En esta etapa podemos ver que luego de las operaciones de transformación la salida que genera cada *layer* pasa por una *función de activación*. Esta función desempeña un papel muy importante en la arquitectura de una red neuronal agregando una transformación no-lineal de los datos. Sin ella, las operaciones de la red solo serían transformaciones lineales, y como vimos en el gráfico anterior la función subyacente a la distribución que tiene los datos no es para nada lineal.     
+
+Hay muchas funciones de activación, aquí emplearemos dos:   `tanh()` (que ya está en R base) y `sigmoid()` (que no está en R, así que la incorporaremos siguiendo a Akshaj).    
+
+## Definimos la función sigmoide
 
 ```{r}
 sigmoid <- function(x){
@@ -226,11 +232,7 @@ sigmoid <- function(x){
 }
 ```
 
-
-# Fowardpropagation: tranformaciones hacia delante y weights
-
-En este punto tomamos los elementos creados antes, a saber: la matriz de datos y los parámetros, y efectuamos la transformación de datos mediante multiplicación matricial. Nótese que esta operación es una forma de transformar los datos de entrada de tal forma de generar una representación distinta de la información codificada con el fin de generar una predicción. Esta predicción es la primera en una cadena de sucesivas predicciones (en base a la operación descripta) que va a ir *achicando* el error mediante una función objetivo.     
-
+## Creamos la rutina de fowardpropagation
 
 ```{r}
 forwardPropagation <- function(X, params, list_layer_size){
@@ -247,8 +249,15 @@ forwardPropagation <- function(X, params, list_layer_size){
     b1_new <- matrix(rep(b1, m), nrow = n_h)
     b2_new <- matrix(rep(b2, m), nrow = n_y)
     
+    # z = init_params$W1 %*% X_train + 
+    #       (matrix(rep(init_params$b1, dim(X_train)[2]), layer_size$n_h))
+    
     Z1 <- W1 %*% X + b1_new
-    A1 <- sigmoid(Z1)         # Función de Activación: sigmoidea entre 0-1
+    A1 <- tanh(Z1)         # Función de Activación: tanh entre -1/1
+                           # introducen no-linealidad en la red (sin ella
+                           # todas las operaciones matriciales son lineales)
+                           # hacen posible el aprendizaje de funciones 
+                           # no lineales en los datos.
     Z2 <- W2 %*% A1 + b2_new
     A2 <- sigmoid(Z2)         # Función de Activación
     
@@ -261,15 +270,14 @@ forwardPropagation <- function(X, params, list_layer_size){
 }
 ```
 
-
 ```{r}
 fwd_prop <- forwardPropagation(X_train, init_params, layer_size)
 lapply(fwd_prop, function(x) dim(x))
 ```
 
-# Calculámos el error de las predicciones 
+# Calculamo el error de las predicciones 
 
-Para el error de predicción de nuestra red neuronal vamos a utilizar la función de entropía cruzada (o *log loss*)
+Para el error de predicción de nuestra red neuronal vamos a utilizar la función de entropía cruzada (o *log loss*).   
 
 ```{r}
 computeCost <- function(X, y, cache) {
@@ -287,12 +295,13 @@ cost <- computeCost(X_train, y_train, fwd_prop)
 cost
 ```
 
-# Backpropagation: Derivada y ajuste hacia atrás de los weights
+# Backpropagation
 
-Este es el corazón de la red y donde se genera la información necesaria para ajustar los parámetros en dirección a mejorar las predicciones.     
+Este es el corazón del procedimiento que realiza la red para generar y capturar aprendizaje.En él se ajustan los parámetros buscando generar transformaciones en los datos con mayor poder de representación.   
 
-Escribiremos una función que calculará el gradiente de la función de pérdida con respecto a los parámetros. 
+Vimos hasta aquí que llegamos a predicciones y a determinar un error residual global y por observación. Llegamos a ese resultado a través de operaciones de transformación cuyos parámetros son conocidos para la red. Por eso tenemos las piezas de información requeridas para dar un paso fundamental en términos de aprendizaje: modificar los parámetros para reducir el error ¿Cómo podemos minimizar el error cambiando los valores de las matrices empleadas para producir las predicciones? Supongamos que dejamos todos los parámetros sin cambio y actualizamos un solo valor. De esa forma con dos operaciones (incrementando y decrementando el valor del parámetro) sabríamos cómo reconfigurar la red para disminuir el error. Pero este enfoque es impracticable en nuestro caso -y en general- pues la red tiene muchos parámetros. Por fortuna todas las operaciones empleadas en nuestra red son **diferenciables**, es decir se puede calcular el gradiente del error a partir de los parámetros de la red (matrices de *weights*). Una vez más viene al rescate "la derivada"!. La derivada se calcula sobre  los *weights* para obtener (analíticamente) sus valores derivados, y lo que se busca es la magnitud de incremento/decremento de estos valores en dirección opuesta al gradiente de la función de pérdida. Esta cambio en los parámetros, este *ajuste diferencial hacia atrás*, permite mediante pequeños cambios en los parámetros disminuir el error en la predicción y el error total del modelo.   
 
+Veamos la función que calculará el gradiente de los parámetros. 
 
 ```{r}
 backwardPropagation <- function(X, y, cache, params, list_layer_size){
@@ -307,8 +316,8 @@ backwardPropagation <- function(X, y, cache, params, list_layer_size){
     A1 <- cache$A1
     W2 <- params$W2
 
-    dZ2 <- A2 - y
-    dW2 <- 1/m * (dZ2 %*% t(A1)) 
+    dZ2 <- A2 - y # error residual
+    dW2 <- 1/m * (dZ2 %*% t(A1))  # A1 weight aprendidos de la primer capa
     db2 <- matrix(1/m * sum(dZ2), nrow = n_y)
     db2_new <- matrix(rep(db2, m), nrow = n_y)
     
@@ -335,9 +344,9 @@ lapply(back_prop, function(x) dim(x))
 
 # Actualización de parámetros 
 
-A partir de los gradientes calculados `porBACKPropagation()`, actualizamos nuestros *weights* usando la función `updateParameters()`. La función toma como argumentos los gradientes, los parámetros de red y una *tasa de aprendizaje*
+A partir de los gradientes calculados `porBACKPropagation()`, actualizamos nuestros *weights* usando la función `updateParameters()`. La función toma como argumentos los gradientes, los parámetros de red y una *tasa de aprendizaje*.     
 
-¿Por qué una tasa de aprendizaje? Porque a veces las actualizaciones de peso (gradientes) son demasiado grandes y eso podría generar un problema en el proceso de optimización por el cual se busca minimizar el error. La tasa de aprendizaje es un hiperparámetro que establecemos nosotros para controlar el impacto de las actualizaciones de los pesos. El valor de la tasa de aprendizaje se encuentra entre 0 y 1. Esta tasa de aprendizaje se multiplica con los gradientes antes de restarse de los pesos. 
+¿Por qué una tasa de aprendizaje? Porque a veces los valores derivados son demasiado grandes y eso podría generar un problema en el proceso de optimización por el cual se busca minimizar el error. La tasa de aprendizaje es un hiperparámetro que establecemos nosotros para controlar el impacto de las actualizaciones de los *weights*. El valor de la tasa de aprendizaje se encuentra entre 0 y 1. Esta tasa de aprendizaje se multiplica por los valores derivados antes de restarse de los pesos. 
 
 ```{r}
 updateParameters <- function(grads, params, learning_rate){
@@ -374,7 +383,7 @@ lapply(update_params, function(x) dim(x))
 
 # Entrenamiento de la red neuronal
 
-Ahora que tenemos todos los elementos de la red crearemos la función que entrenará nuestro modelo. Usaremos todas las funciones que armamos en el siguiente orden.
+Ahora que tenemos todos los elementos de la red crearemos la función que entrenará nuestro modelo. Usaremos todas las funciones que armamos en el siguiente orden.   
 
 - Ejecutar propagación hacia adelante   
 - Calcular pérdida   
@@ -382,14 +391,14 @@ Ahora que tenemos todos los elementos de la red crearemos la función que entren
 - Actualizar parámetros   
 - Repetir   
 
-Esta función `trainModel()` toma como argumentos la matriz de entrada X, las etiquetas verdaderas y y el número de épocas.
+Esta función `trainModel()` toma como argumentos la matriz de entrada X, las etiquetas verdaderas y y el número de épocas.    
 
-1- Obtenrt los tamaños de las capas (*leyers*) e inicializar parámetros aleatorios.    
-2- Creamos un vector llamado `cost_history` para almacenar el valor de pérdida por caada iteración de la red (o *epoch*).
+1- Obtener tamaño las capas (neuronas en los *leyers*) e inicializar parámetros aleatorios.      
+2- Creamos un vector llamado `cost_history` para almacenar el valor de pérdida por cada iteración de la red (o *epoch*).     
 3- Iteramos:
-  - Ejecutamos propagación hacia delante.   
-  - Calculamos pérdida.  
-  - Actualizamos parámetros.   
+  - Fowardpropagation.   
+  - Calculamos pérdida.
+  - Backwarpropagation y actualizamos parámetros.     
   
 ```{r}
 trainModel <- function(X, y, num_iteration, hidden_neurons, lr){
@@ -448,7 +457,7 @@ y_pred <- round(y_pred)
 # Creamos Regresion Logística para comparar modelos
 
 ```{r}
-lr_model <- glm(Y ~ X1 + X2, data = train)
+lr_model <- glm(Y ~ X1 + X2, data = train, family="binomial")
 lr_pred <- round(as.vector(predict(lr_model, test[, 1:2])))
 ```
 
@@ -489,4 +498,9 @@ calculate_stats(tb_nn, "RedNeuronal")
 
 # Conclusión
 
-Hemos construido una red neuronal desde cero con una implementación vectorizada de retropropagación. Pasamos por todo el ciclo de vida de entrenar un modelo; desde el preprocesamiento de datos hasta la evaluación del modelo. En el camino, aprendimos sobre las matemáticas que hacen una red neuronal. Repasamos conceptos básicos de álgebra lineal y cálculo y los implementamos como funciones. Vimos cómo inicializar pesos, realizar propagación hacia adelante, descenso de gradiente y propagación hacia atrás. Aprendimos sobre la capacidad de una red neuronal para adaptarse a datos no lineales y entendimos la importancia del papel que juegan las funciones de activación en ella. Entrenamos una red neuronal y comparamos su rendimiento con un modelo de regresión logística. 
+Hemos re-construido la red neuronal de Akshaj (2020) con su implementación vectorizada de retropropagación.    
+
+Hemos aprendido los elementos y operaciones que hacen una red neuronal para transformar sus imputs en outputs. Pudimos apreciar porqué la arquitectura de estos artefactos es tan poderosa para reconocer patrones no lineales en los datos y emplearlos para una tarea de predicción.    
+
+Aprendimos también el sentido específico y nada trivial que asume la idea de *aprendizaje* en el contexto del *machine learning*. Idea que se asocia a la reconfiguración dirigida de la estructura neuronal a partir de los datos disponibles y los datos *requeridos* (*weights* y *bias*) para cumplir una tarea supervisada.  En este punto hay aspectos de mucho interés para la reflexión epistemoñógica sobre nuestro artefecto.        
+
