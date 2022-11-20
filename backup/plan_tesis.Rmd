@@ -114,21 +114,23 @@ Por último, aunque el foco de nuestro trabajo está puesto en documentos judici
 
 Teniendo en cuenta las detalladas reseñas elaborada por @li2020 y @roy2021 sobre la tarea NER en general, vamos a centrarnos en los avances generados respecto de aplicaciones al ámbito legal.
 
-En lenguas distintas al español, podemos mencionar a @leitner2019 que proponen aplicar dos modelos basados en *campos aleatorios condicionales* (*Conditional Random Fields* o CRFs) y *redes neuronales recurrentes de memoria de corto y largo plazo* (BLSTM). El corpus legal empleado en este estudio consistió en 750 sentencias en idioma alemán, anotadas manualmente. La tipología de clases empleada incluyó 19[^16] categorías que pueden consultarse en su idioma original.[^17] Para esas dos arquitecturas se probaron tres modelos, obteniendo los mejores resultados con BLSTM (F1 95.4/95.9). Por su parte @chalkidis2021 proponen un proyecto de extracción de datos específicos de contratos en inglés, formulando así un antecedente valioso para nuestro trabajo. Informan detallados experimentos -con optimización de hiperparámetros- para distintos modelos de redes neuronales recurrentes: LSTMs, DILATED-CNNs, TRANSFORMER y BERT. Reportan los mejores resultados con el primer modelo, empleando representaciones distribuidas de palabras específicas del dominio (*word embedings* mediante algoritmo *wor2vec*).
+En lenguas distintas al español, podemos mencionar a @leitner2019 que proponen aplicar dos modelos basados en *campos aleatorios condicionales* (*Conditional Random Fields* o CRFs) y *redes neuronales recurrentes de memoria de corto y largo plazo* (BLSTM). El corpus legal empleado en este estudio consistió en 750 sentencias en idioma alemán[^16], anotadas manualmente. La tipología de clases empleada incluyó 19[^17] categorías que pueden consultarse en su idioma original.[^18] Para esas dos arquitecturas se probaron tres modelos, obteniendo los mejores resultados con BLSTM (F1 95.4/95.9). Por su parte @chalkidis2021 proponen un proyecto de extracción de datos específicos de contratos en inglés, formulando así un antecedente valioso para nuestro trabajo. Informan detallados experimentos -con optimización de hiperparámetros- para distintos modelos de redes neuronales recurrentes: LSTMs, DILATED-CNNs, TRANSFORMER y BERT. Reportan los mejores resultados con el primer modelo, empleando representaciones distribuidas de palabras específicas del dominio (*word embedings* mediante algoritmo *wor2vec*).
 
-[^16]: Que podrían traducirse como: persona, juez/a, abogado/a, país, ciudad, calle, paisaje, organización, empresa, institución, Corte, marca, ley, ordenanza, Norma Legal de la Comunidad Europea, regulación, contrato, decisión judicial y bibliografía legal.
+[^16]: Con 66.7 mil horaciones y 2.1 millones de tokens.
 
-[^17]: <https://github.com/elenanereiss/Legal-Entity-Recognition>
+[^17]: Que podrían traducirse como: persona, juez/a, abogado/a, país, ciudad, calle, paisaje, organización, empresa, institución, Corte, marca, ley, ordenanza, Norma Legal de la Comunidad Europea, regulación, contrato, decisión judicial y bibliografía legal.
 
-Otras implementaciones relevantes encontramos en @pais2021 que plantean una arquitectura basada en redes neuronales recurrentes BLSTM y una capa final CRF, con representación distribuida de datos (palabras y caracteres), diccionarios y afijos en idioma Rumano*.* Como dato interesante, los investigadores evalúan ensambles de modelos y logran los mejores resultados de los experimentos (F1 90.36). Por su parte @cardellino2017 proponen un trabajo para documentos en inglés dirigido no solo a la tarea de reconocimiento y clasificación, sino también vinculación de entidades a una ontología (LKIF-Wikipedia)[^18], reportando resultados en torno a F1 80% para distintos niveles de granularidad. La arquitectura experimentada en este trabajo incluyó a Máquinas de Soporte Vectorial (SVM), redes neuronales (NN) y redes entrenadas sobre imputs basados en representación distribuida de palabras (*Embedings)*. Finalmente, otros proyectos interesantes atacan problemas específicos en la tarea NER: @barriere2019 proponen un modelo MICA (*May I Check Again*) para resolver errores de escritura y tipeo en entidades mediante la generación contextualizada de candidatos, y @skylaki2020 aborda la tarea NER en documentos PDF con pérdida de información (*noisy text*) empleando una estrategia que no implica anotación de entidades sino su generación *en* el texto.
+[^18]: <https://github.com/elenanereiss/Legal-Entity-Recognition>
 
-[^18]: Tarea que en el ámbito legal es particularmente necesaria dadas las relaciones fuertemente estructuradas y jerarquías que predominan en este dominio, aunque su realización implica un alto costo en tiempo y recursos para desarrollarse y mantenerse.
+Otras implementaciones relevantes encontramos en @pais2021 que plantean una arquitectura basada en redes neuronales recurrentes BLSTM y una capa final CRF, con representación distribuida de datos (palabras y caracteres), diccionarios y afijos en idioma Rumano*.* Como dato interesante, los investigadores evalúan ensambles de modelos y logran los mejores resultados de los experimentos (F1 90.36). Por su parte @cardellino2017 proponen un trabajo para documentos en inglés dirigido no solo a la tarea de reconocimiento y clasificación, sino también vinculación de entidades a una ontología (LKIF-Wikipedia)[^19], reportando resultados en torno a F1 80% para distintos niveles de granularidad. La arquitectura experimentada en este trabajo incluyó a Máquinas de Soporte Vectorial (SVM), redes neuronales (NN) y redes entrenadas sobre imputs basados en representación distribuida de palabras (*Embedings)*. Finalmente, otros proyectos interesantes atacan problemas específicos en la tarea NER: @barriere2019 proponen un modelo MICA (*May I Check Again*) para resolver errores de escritura y tipeo en entidades mediante la generación contextualizada de candidatos, y @skylaki2020 aborda la tarea NER en documentos PDF con pérdida de información (*noisy text*) empleando una estrategia que no implica anotación de entidades sino su generación *en* el texto.
+
+[^19]: Tarea que en el ámbito legal es particularmente necesaria dadas las relaciones fuertemente estructuradas y jerarquías que predominan en este dominio, aunque su realización implica un alto costo en tiempo y recursos para desarrollarse y mantenerse.
 
 Dentro de los pocos trabajos actuales aplicados al español vamos a encontrar a @samy2021 que se enfoca en textos legislativos. Este trabajo parte de un corpus legislativo en español no anotado y emplea una metodología híbrida para su anotación según cada tipo de entidad de la siguiente forma: 1) las *normas* se anotan con expresiones regulares y listas de nombres oficiales, 2) las *fechas* mediante expresiones regulares, 3) los *organismos* mediante listas oficiales, 4) los *lugares* mediante listas y 5) las *personas* mediante librería de procesamiento spaCy y listas. Además de lo anterior se validó manualmente y de forma parcial la anotación (no se ofrecen detalles del alcance). El resultado de todo este esfuerzo es un texto enriquecido con 10+ millones de entidades marcadas en los 144.5 mil textos de Leyes-Decretos. El procesamiento fue realizado a partir de redes neuronales convolucionales profundas (*Deep CNN* implementadas por la librería spaCy v3) con uso de representación distribuida [@serrà2017]. En este trabajo se reporta un F1 general de 93%, aunque los resultados no son reproducibles pues se no publicaron datos ni algoritmos.
 
-Otra experiencia aplicada al ámbito legislativo -esta vez en nuestro país- encontramos en la tesis de grado de Karen Haag[^19], bajo la dirección de Cristian Cardellino. Aunque los resultados no son concluyentes por las dificultades afrontadas en la anotación del corpus, el trabajo se enfocó exclusivamente en la mención de normas (ley, decreto, resolución, etc.).
+Otra experiencia aplicada al ámbito legislativo -esta vez en nuestro país- encontramos en la tesis de grado de Karen Haag[^20], bajo la dirección de Cristian Cardellino. Aunque los resultados no son concluyentes por las dificultades afrontadas en la anotación del corpus, el trabajo se enfocó exclusivamente en la mención de normas (ley, decreto, resolución, etc.).
 
-[^19]: Trabajo realizado en la Universidad Nacional de Córdoba, FAMAF. En este proyecto se elaboró un corpus ad-hoc obtenido de InfoLEG y se enfocó la tarea NER en la detección de tipos de normas. Para ello se emplearon expresiones regulares, y un anotador semántico basado en CRF (disponible en la librería en Java, Stanford NER-CRF).
+[^20]: Trabajo realizado en la Universidad Nacional de Córdoba, FAMAF. En este proyecto se elaboró un corpus ad-hoc obtenido de InfoLEG y se enfocó la tarea NER en la detección de tipos de normas. Para ello se emplearon expresiones regulares, y un anotador semántico basado en CRF (disponible en la librería en Java, Stanford NER-CRF).
 
 # Desafíos
 
@@ -144,73 +146,57 @@ Finalmente, existen restricciones legales que deben tenerse en cuenta para el tr
 
 <!--# describir las metdologías que se emplearán para cumplir los objetivos propuestos describiendo el encadenamieto de conocimientos, habilidades y recursos que se utilizarán para cumplir los objetivos-->
 
-Dividiremos nuestro trabajo en dos partes asociadas a los dos objetivos propuestos: la primera parte resolveremos la construcción de un corpus legal semi-anotado y en la segunda desarrollaremos distintos algoritmos de aprendizaje supervisado para el tratamiento de dicho corpus.
+Dividiremos nuestro trabajo en dos partes asociadas a los dos objetivos propuestos: la primera parte resolveremos la construcción de un *corpus legal semi-anotado* y en la segunda desarrollaremos distintos algoritmos de aprendizaje supervisado para el tratamiento de dicho corpus.
 
 ## Primera Parte: *construcción de corpus semi-anotado*
 
-El primer objetivo de este trabajo es crear un *corpus semi-anotado* con *metadatos identificatorios de las sentencias judiciales*. Los cinco tipos de entidades incluidas en esos metadato son:
+Para armar nuestro corpus buscaremos ampliar la base de datos disponible de 4299 fallos judiciales con un nuevo proceso de extracción de datos web o *scraping.* Emplearemos para ello Python 3.6, con las librerías *beautifulsoup4* y *Selenium.*
 
--   fecha de sentencia,
+Organizaremos el proceso de extracción de información pública de tal manera de respetar los parámetros de diseño del servicio que ofrece la sección de Jurisprudencia de la Corte Suprema de Justicia de Buenos Aires. Aunque el mismo no solicita identificación agregaremos datos de identificatorios al momento de efectuar la conexión y fijaremos horario de extracción entre las 22 y las 23.30 (banda horaria de tráfico reducido en los servicios públicos web).
 
--   partes del proceso:
+Para anotar nuestro corpus emplearemos los *metadatos identificatorios de las sentencias judiciales* obtenidas en el paso anterior. Los cinco tipos de *entidades* que buscaremos anotar son:
 
-    -   actora, y
+-   "fecha de sentencia": referencia cronológica del acto judicial,
 
-    -   demandada,
+-   "partes del proceso": generalmente actora(s) y demandada(s). Personas (físicas o jurídicas) que intervienen en una causa judicial y dirección del vínculo judicial.
 
--   tipo de proceso,
+-   "tipo de proceso": tipología del proceso según normativa aplicable.
 
--   órgano que dictó la sentencia,
+-   "órgano que dictó la sentencia": referencia a la estructura orgánica judicial y al mismo tiempo ubicación geográfica de la ciudad asiento del órgano.
 
--   jueces que firmaron la sentencia.
+-   "jueces de sentencia": magistrados que elaborar la sentencia.
 
-La selección de estos metadatos se basa en su amplia disponibilidad debido a que constituyen las referencias mínimas necesarias para identificar un fallo judicial. Los protocolos empleados en este dominio para la cita de precedentes normalmente contemplan a este grupo de datos, por lo que su empleo es extendido. Además de ello, cada elemento de este grupo aporte información valiosa de distintas dimensiones del caso, a saber:
+La selección de estos metadatos se basa en su amplia disponibilidad e importancia como información identificatoria. Los protocolos empleados en el dominio judicial para la cita de precedentes contemplan normalmente a este grupo de datos para individualizar un caso, por lo que su empleo es extendido. Además de ello, como se puede advertir de la breve descripción ofrecida, cada metadato aporta información valiosa de distintas dimensiones del caso, agregando valor semántico a la anotación.
 
--   referencia cronológica,
+Para la tarea de anotación normalizaremos[^21] el texto y los metadatos, teniendo en mira especialmente que la recuperación de referencias textuales y su ulterior asignación a una entidad sea precisa y exhaustiva. Toda sentencia judicial incluye un universo de múltiples referencias, expresiones polisémicas, ambigüedad e indeterminación [@samy2021]. Por ello, una premisa para la tarea de asignación $token = entidad$, será minimizar los errores y maximizar la recuperación de información. En ese sentido utilizaremos dos estrategias de asignación basadas en *coincidencia exacta* y *coincidencia parcial* respectivamente que nos permitirá enriquecer la descripción de los metadatos.[^22] Seleccionaremos aquella con el puntaje F1 más alto (ver definición de métricas más abajo).
 
--   personas y dirección del vínculo judicial,
+[^21]: Usualmente refiere a la tarea de dividir un documento en oraciones, separar las palabras en tokens (unidades lingüísticas), corregir y/o estandarizar formatos.
 
--    tipología del proceso,
+[^22]: Dado que las entidades identificatorias son metadatos que reproducen datos de una sentencia, pueden presentarse bajo una forma de expresión de menor valor expresivo (eg. abreviaturas) que el dato original. En este caso, generaremos una versión enriquecida del metadato.
 
--   referencia estructural-orgánica, y
+## Segunda Parte: *desarrollo de modelos*
 
--   jueces.
+El primer paso en esta etapa será elaborar un modelo base y una medida de desempeño inicial (*baseline*) para la tarea propuesta. En este caso emplearemos el corpus semi-anotado sin creación de nuevos atributos, y con arquitectura de redes neuronales recurrentes (RNN) específicamente diseñadas para problemas de predicciones de secuencias (como son los datos textuales) [@lample2016].
 
-    ## Procesamiento de datos
+Seguidamente iniciaremos dos rondas secuenciales de experimentos en las que buscaremos enriquecer los datos de entrada para nuestros modelos y la arquitectura de procesamiento según las propuestas más prometedoras [@ma2016; @lample2016; @leitner2019]. En general, @li2020a señalan que las arquitecturas de aprendizaje profundo empleadas para la tarea NER suponen estos elementos:
 
-    To adapt categories for the legal domain, the set of NE classes was redefined in the approaches described above. Thus, Dozier et al. [13] focused on legal NEs (e.g., judge, lawyer, court ). Cardellino et al. [8] extended NEs on NERC level to document, abstraction,andact. It is unclear what belongs to these classes and how they were separated from each other. Glaser et al. [18] added reference [23]. However, this was understood as a reference to legal norms, so that further references (to decisions, regulations, legal literature, etc.) were not covered. @leitner_fine-grained_2019
+-   imputs o datos enriquecidos con distintas estrategias (*embedings,* etiquetado de partes del discurso (POS-tag), disccionarios, entre otros),
 
-    3.1 Semantic Categories Legal documents differ from texts in other domains, and from each other in terms of text-internal, and text-external criteria [7,12,15,21], which has a huge impact on linguistic and thematic design, citation, structure, etc. This also applies to NEs used in legal documents. In law texts and administrative regulations, the occurrence of typical NEs such as person, location and organization is very low. Court decisions, on the other hand, include these NEs, and references to national or supranational laws, other decisions, and regulations. Two requirements for a typology of legal NEs emerge from these peculiarities. First, the categories used must reflect those entities that are typical for decisions. Second, a typology must concern the entities whose differentiation in decisions is highly relevant. @leitner_fine-grained_2019 [275]
+-   codificador de contexto (*context encoder)* con distintas alternativas: CNN, RNN, Language Model, Transformer.
 
-Ver @samy2021
+-   decodificador de categorías o etiquetas (*tag decoder)* con distintas alternativas softmax, CFR, RNN, entre otras.
 
-PreAnotación
+Por nuestra parte, siguiendo a @leitner2019 y @li2020b, iniciaremos nuestra primer ronda de trabajo con los siguientes modelos:
 
--   Tipología de categorías semanticas acorde al dominio.
+-   BLSTM-CRF, y
 
--   expresiones regulares: ej. fechas
+-   *Transformer*
 
--   listas: leyes, organismos, lugares (países, comunidades autónomas, provincias y localidades, tipos de vía, etc. Para utilizar estas listas, fue necesario un proceso de depuración porque presentaban los mismos problemas señalados anteriormente. Además, se ha optado por excluir algunos nombres de localidades por su ambigüedad y por el posible ruido que puede causar en forma de falsos positivos. Por ejemplo, se han eliminado de la lista localidades como "María", "Javier" o "Caso".)
+Ambos modelos tienen formas diferentes. Mientras que los modelos BLSTM se basan en *redes neuronales recurrentes* (RNN) con complejas cajas de procesamiento (que codifican y decodifican sus imputs), los modelos basados en *Transformers* [@vaswani2017] emplean capas de procesamiento que utilizan un mecanismo de auto-atención (*self-attentions*). Los primeros constituyen la opción más común dentro de los modelos de aprendizaje profundo para tareas NER [@li2020]. Los últimos han mostrado mejores resultados que los primeros en ciertos contextos donde se procesan muchos datos (grandes corpus) [@li2020b]. En cualquier caso, ambos modelos están fuertemente determinados por la representación de los datos o imputs, por lo que buscaremos incorporar formas de representación distribuida de datos a partir de modelos de lenguaje pre-entrenados. Recursos valioso para esta tarea serán los modelos de lenguaje en español legal presentados por @samy2020 y @gutiérrez-fandiño2021.
 
--   nombres propios (SGP), cargos y puestos
+En base a los resultados obtenidos en esta primer ronda realizaremos una nueva ronda de experimentos buscando mejorar los resultados obtenido con las primeras configuraciones.
 
-Entrenamiento de Modelo
-
-\-\-\-\-\-\-\-\--Adem as se desarrollar a un aprendedor automatico simple *baseline*. Este aprendedor, a comparacion de las tecnicas de aprendizaje profundo, no requiere mucha experiencia ni tiempo para su construcci on y posee menos par ametros que las redes neuronales, que generalmente en arquitecturas complejas tienen una gran cantidad de par ametros. Este servira como referencia para los demas aprendedores.
-
-## Segunda Parte: *desarrollaremos de modelos* 
-
-## Modelo base (*Baseline*)
-
-Como punto de referencia inicial para nuestro trabajo elaboraremos un modelo base a partir de una arquitectura estándar de redes neuronales profundas y un clasificador basado en máquinas de soporte vectorial. Estas últimas conforman un grupo de algoritmos de aprendizaje supervisado muy empleado en tareas NER.
-
-# Software
-
-El trabajo se desarrollará utilizando el lenguaje de programación Python 3 y frameworks o librerías asociadas. .... Para el entrenamiento y evaluación de los modelos de NLP propuestos se utilizarán las plataformas Google Colab y Kaggle las cuales brindan acceso gratuito a GPU's de alto rendimiento.
-
-## Entrenamiento de modelos
-
-@gutiérrez-fandiño2021
+Para todo este trabajo utilizaremos Python 3, y dependencias asociadas a la tarea (e.g. spaCy [@neumann2019], T-NER [@ushio2021], entre otras). Para el entrenamiento y evaluación de los modelos propuestos emplearemos siempre que sea posible las plataformas Google Colab y Kaggle que brindan acceso gratuito a GPU's de alto rendimiento.
 
 ## Evaluación
 
@@ -230,8 +216,17 @@ Nuestras métricas son:
 
 $$
 Exactitud= \frac{TP+TN}{TP+TN+FP+FN}  \\ 
+$$
+
+$$
 Precisión = \frac{TP}{TP+FP}   \\
+$$
+
+$$
 Exahustividad = \frac{TP}{TP+FN} \\
+$$
+
+$$
 F1 Score = 2 \frac{Precision*Recall}{Precision+Recall} = \frac{2*TP}{2*TP+FP+FN} \\
 $$
 
@@ -245,4 +240,21 @@ Donde *`J`* mide la relación entre la intersección y la unión de las entidade
 
 # Cronograma
 
-Cronograma Media página. En meses (Mes1, Mes2, etc.)
+```{r, echo=F, warning=F, message=F}
+library(dplyr)
+tibble::tribble(
+  ~mes, ~actividad, ~descripción,
+  "1", "extracción datos web", "Extracción de información web para ampliar corpus disponible",
+  "2-3", "creación corpus", "Creación corpus semi-anotado",
+  "4",  "habilitación infraestructura", "Se creará la infraestructra para los experimentos y registro para reproducibilidad",
+  "5", "modelo base", "creación del modelo base",
+  "6-7", "Experimentos Ronda 1", "Primer Ronda de Experimentos, análisis y evaluación",
+  "8-9", "Experimentos Ronda 2", "Segunda Ronda de Experimentos, análisis y evaluación",
+  "10-11-12", "Redacción de Tesis", "Elaboración del documento de Tesis",
+  ) %>% 
+  kableExtra::kable() %>% 
+  kableExtra::column_spec(1, color = "white", background = "green")
+
+```
+
+\pagebreak
