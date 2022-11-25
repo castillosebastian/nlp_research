@@ -1,0 +1,294 @@
+---
+title: "Comparacion de Modelos para problema de Clasificación"
+author: "Claudio Sebastián Castillo"
+date: "2022-11-24"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+library(dplyr)
+library(ggplot2)
+library(tidymodels)
+library(parsnip)
+
+# Ref:
+# https://rpubs.com/Lightbridge/809119
+# https://easystats.github.io/performance/index.html
+# https://emilhvitfeldt.github.io/ISLR-tidymodels-labs/04-classification.html
+# https://hastie.su.domains/ISLR2/ISLRv2_website.pdf p.130
+
+# https://dionysus.psych.wisc.edu/iaml/unit-04.html
+
+# comparacion modelos 168
+
+
+#dataset = readxl::read_excel("~/R/research_tools/utn_aprendizaje_estadístico/Prestamo.xls")
+dataset = readxl::read_excel("~/nlp_research/rmarkdowns/Prestamo.xls")
+dataset <- dataset %>% 
+  mutate(Educacion = as.factor(Educacion), 
+         Default = as.factor(Default))
+
+```
+
+# Introducción
+
+En este estudio vamos a implementar tres modelos para clasificación de clientes en "buenos" y "malos" pagadores
+a fin de su evaluación por el BancoX. 
+
+# Estructura de los datos
+
+```{r}
+skimr::skim(dataset)
+```
+
+Vemos que no hay valores faltantes en los datos. Vemos que hay un valores extremos que pueden afectar el desempeño de nuestros modelos, sin perjuicio de lo cual mantendremos las observaciones para corroborar si alguno de ellos resiste estas particularidades en los datos sin eliminar observaciones. Incluimos N_Cliente pese a ser variable indentificatoria por simple interés de revisión de la consistencia de las bases de datos.   
+
+# Distribuciones y correlaciones
+
+```{r, echo=F, fig.height=20, fig.width=14}
+GGally::ggpairs(dataset, lower = list(continuous = "smooth"),
+        diag = list(continuous = "barDiag"), axisLabels = "none")
+```
+
+Como vemos la variable Deuing contiene información de utilidad para la clasificación que estamos intentando realizar, como así tambien la variable Empleo y Domicilio (estas variables pueden ser colineales). Cabe notar que consideradas individualmente las variables tienen muchos outlier. 
+
+## Gráfico con variables de interés
+
+```{r, fig.align='center'}
+dataset %>% 
+  ggplot(aes(Deuing, Empleo, color = Default)) + 
+  geom_point(alpha = 0.4) +
+  scale_color_brewer(palette = "Set1", direction = -1) +
+  labs(title = "Buenos y malos pagadores según Deuing y Empleo") 
+```
+
+A continuación plantearemos tres modelos para este problema.    
+
+# Division Train y Test
+
+Para evaluar los modelos dividiremos las obserevacinoes en datos de entrenamiento y datos de testeo. 
+
+```{r}
+set.seed(123)
+default_split <- initial_split(dataset, strata = Default)
+train <- training(default_split) # 75% to traning data
+test <- testing(default_split) # 25% to test data
+default_split
+```
+
+
+# Regresion logística
+
+```{r}
+lr_spec <- logistic_reg() %>%
+  set_engine("glm") %>%
+  set_mode("classification")
+```
+
+### Modelo Simple
+
+```{r}
+lr_simple <- lr_spec %>%
+  fit(Default ~ Deuing, data = train)
+lr_simple
+```
+
+### Modelo Completo
+
+Plateamos el modelo completo con todas las variables. El procesamiento crea automáticamente la variable dummy a partir de "Educación". Intentamos un modelo multiple utilizando predictoras a *Empleo + Deuing + Creddeu* pero descartamos esta fórmula para emplear todas las variables -como se muestra seguidamente- porque arrojan mejor resultado de Devianza y AIC. 
+
+```{r}
+lr_completo <- lr_spec %>%
+  fit(Default ~ .,    data = train)
+lr_completo
+```
+
+### Comparando modelos logísticos
+
+```{r}
+list("modelo completo" = lr_completo,
+     "modelo simple" = lr_simple) %>% 
+  map_dfr( 
+    broom::glance, 
+    .id = "Model") %>% 
+  select(Model, AIC, BIC)
+```
+
+Vemos que el modelo completo tiene *BIC* y un *AIC* menor que el modelo simple. Ahora veremos los p_valores por predictor:    
+
+
+```{r}
+lr_completo %>%
+  pluck("fit") %>%
+  summary()
+```
+
+### Tabla de Resultados de clasificación logística en test
+
+```{r}
+augment(lr_completo, new_data = test) %>%
+  conf_mat(truth = Default, estimate = .pred_class) %>% 
+   autoplot(type = "heatmap")
+```
+
+### Exactitud del modelo logístico
+
+```{r}
+augment(lr_completo, new_data = test) %>%
+  accuracy(truth = Default, estimate = .pred_class)
+```
+
+# Clasificador Bayesiano
+
+```{r}
+library(discrim)
+nb_spec <- naive_Bayes() %>% 
+  set_mode("classification") %>% 
+  set_engine("klaR") %>% 
+  set_args(usekernel = FALSE)  
+
+```
+
+### Ajuste del modelo
+
+```{r}
+nb_fit <- nb_spec %>% 
+  fit(Default ~ ., data = train)
+```
+
+### Tabla de resultados de clasificación en test
+
+```{r}
+augment(nb_fit, new_data = test) %>% 
+  conf_mat(truth = Default, estimate = .pred_class) %>% 
+  autoplot(type = "heatmap")
+```
+
+### Precisión del modelo bayesiano en test
+
+```{r}
+augment(nb_fit, new_data = test) %>%
+  accuracy(truth = Default, estimate = .pred_class)
+```
+
+# K-Vecino más cercano
+
+```{r}
+knn_spec <-  nearest_neighbor(neighbors = 5) %>% 
+  set_engine("kknn") %>% 
+  set_mode("classification")
+```
+
+### Ajuste del modelo 
+
+Eliminamos variable categórica Educación para poder ajustar el modelo KNN. 
+
+```{r}
+fit_knn <- knn_spec %>% 
+  fit(Default ~ ., data = train %>% select(-Educacion))
+fit_knn
+```
+
+### Tabla de resultados de clasificación en test
+
+```{r}
+augment(fit_knn, new_data = test) %>%
+  conf_mat(truth = Default, estimate = .pred_class) %>% 
+  autoplot(type = "heatmap")
+  
+
+```
+
+### Precisión del modelo en datos de test
+
+```{r}
+augment(fit_knn, new_data = dataset) %>%
+  accuracy(truth = Default, estimate = .pred_class) 
+```
+
+
+# Evaluación final de los tres modelos
+
+
+```{r}
+models <- list("Regresion_logística" = lr_completo,
+               "Clasificador_bayesiano" = nb_fit,
+               "K-vecino_+cercano" = fit_knn)
+
+preds <- imap_dfr(models, augment, 
+                  new_data = dataset, .id = "model")
+# preds %>%
+#   select(model, Default, .pred_class, .pred_0, .pred_1) %>% head()
+
+```
+
+## Definimos tres métricas
+
+
+Las métricas son importante en los problemas de aprendizaje automático permitiéndonos cuantificar el rendimiento de nuestros modelos. Por eso, detallaremos a continuación las formulas que empleamos en la evaluación.
+
+Considerando que:
+
+- Positivos verdaderos (TP) son aquellas predicciones que realiza el modelo como positivas y realmente lo son.   
+- Negativos verdaderos (TN) son predicciones que realiza el modelo como negativas y realmente lo son.    
+- Positivos falsos (FP) son aquellas predicciones que realiza el modelo como positivas, pero en realidad son negativas.    
+- Negativos falsos (FN) son aquellas predicciones que realiza el modelo como negativas, pero en realidad son positivas.      
+
+Nuestras métricas son: exactitud (*accuracy*), precisión (*specificity*) y exhaustividad (*sensitivity*), que se definene como:      
+
+
+$$
+Exactitud= \frac{TP+TN}{TP+TN+FP+FN}  \\ 
+$$
+
+$$
+Precisión = \frac{TP}{TP+FP}   \\
+$$
+
+$$
+Exahustividad = \frac{TP}{TP+FN} \\
+$$
+
+
+```{r}
+metricas <- metric_set(accuracy, sensitivity, specificity)
+```
+
+## Resultados 
+
+Vemos que para dos de las tres métricas elegidas el modelo **K-vecino-+cercano** presenta los mejores resultados (ver variable ranking), y es un modelo estable en relación a todas las métricas (cosa que los otros dos presentan mayor variación). Este es nuestro modelo ganador.    
+
+```{r}
+library(kableExtra)
+
+temp = preds %>%
+  group_by(model) %>%
+  metricas(truth = Default, estimate = .pred_class) 
+
+temp %>% 
+  as_tibble() %>% 
+  group_by(.metric) %>% 
+  mutate(ranking = rank(-.estimate)) %>% 
+  arrange(ranking) %>% 
+  kable(caption = "Resultado de los modelos planteados", align = 'c', longtable = TRUE ) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = F, font_size = 12) %>%
+  kable_styling(latex_options = c("repeat_header")) %>% 
+  column_spec(5, color = "white", background = 'darkgray')  
+```
+
+## Curvas ROC
+
+También presetamos la curva ROC. En el gráfico podemos ver que la performance del modelo K-vecino_+cercano es muy buena incluso con pocas observaciones. 
+
+```{r}
+preds %>%
+  group_by(model) %>%
+  roc_curve(Default, .pred_0) %>%
+  autoplot()
+```
+
+

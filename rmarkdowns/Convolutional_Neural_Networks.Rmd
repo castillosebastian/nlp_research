@@ -1,0 +1,36 @@
+---
+title: "Redes Neuronales: entendiendo el núcleo de la IA "
+author: "Claudio Sebastián Castillo"
+date: "`r format(Sys.Date(), '%d de %B de %Y') `"
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    theme: united
+  pdf_document: default
+always_allow_html: true
+---
+<style> body {text-align: justify} </style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(fig.align = "center", fig.height = 8, fig.width = 10)
+
+```
+
+```{r, fig.height = 12, fig.width = 12, out.width='100%', echo=FALSE}
+
+# todo
+# activate graph
+# knitr::include_graphics("~/jusmodels/rmarkdowns/composition-of-different-delicious-ingredients.jpg")
+# eniquecer artículo con 
+# https://cs.stanford.edu/people/karpathy/convnetjs/demo/mnist.html
+
+```
+
+# Introducción
+
+
+
+
+
