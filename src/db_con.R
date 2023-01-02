@@ -8,3 +8,4 @@ tbl(DB_JUR(), "jur_fallos")
 tally(tbl(DB_JUR(), "jur_fallos"))
 
 
+install.packages("languageserver")
